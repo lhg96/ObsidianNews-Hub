@@ -96,6 +96,48 @@ def get_article_by_url(url):
     return None
 
 
+def get_recent_articles_by_source(source, limit=10):
+    where_clause = {"source": source}
+
+    logger.info(f"Searching for articles with source: {source}")
+
+    # 먼저 전체 컬렉션의 항목 수를 확인합니다.
+    total_count = collection.count()
+    logger.info(f"Total items in collection: {total_count}")
+
+    # 일단 큰 수의 결과를 요청합니다.
+    n_results = min(1000, total_count)
+
+    results = collection.query(
+        query_texts=[""],
+        n_results=n_results,
+        where=where_clause
+    )
+    logger.info(f"Query results count: {len(results['ids'][0])}")
+
+    # 모든 메타데이터의 'source' 필드를 확인합니다.
+    all_sources = set(meta['source'] for meta in results['metadatas'][0])
+    logger.info(f"All sources found in results: {all_sources}")
+
+    articles = []
+    for i in range(len(results['ids'][0])):
+        article = {
+            'id': results['ids'][0][i],
+            'title': results['metadatas'][0][i]['title'],
+            'url': results['metadatas'][0][i]['url'],
+            'date': datetime.fromtimestamp(results['metadatas'][0][i]['date']),
+            'summary': results['metadatas'][0][i].get('summary', 'No summary available'),
+            'source': results['metadatas'][0][i]['source']
+        }
+        articles.append(article)
+
+    # 날짜를 기준으로 정렬
+    articles.sort(key=lambda x: x['date'], reverse=True)
+
+    # 상위 limit 개수만큼 반환
+    return articles[:limit]
+
+
 # 사용 예시
 if __name__ == "__main__":
     # 키워드로 기사 검색
@@ -151,3 +193,18 @@ if __name__ == "__main__":
             f"Summary: {article['metadata'].get('summary', 'No summary available')}")
     else:
         print("Article not found")
+
+     # 특정 소스의 최근 뉴스 10개 가져오기
+    source = "Donga"
+    logger.info(f"\nGetting 10 most recent news articles from {source}:")
+    recent_source_news = get_recent_articles_by_source(source, 10)
+
+    logger.info(f"Total articles retrieved: {len(recent_source_news)}")
+
+    # 최근 뉴스 출력
+    for i, article in enumerate(recent_source_news, 1):
+        logger.info(f"{i}. {article['title']}")
+        logger.info(f"   Published: {article['date']}")
+        logger.info(f"   URL: {article['url']}")
+        logger.info(f"   Summary: {article['summary'][:100]}...")
+        logger.info("")

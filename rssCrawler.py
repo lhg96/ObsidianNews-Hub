@@ -10,6 +10,7 @@ import csv
 from newspaper import Article
 import threading
 import nltk
+from dateutil import parser
 
 # NLTK 데이터 다운로드 (처음 한 번만 실행하면 됩니다)
 nltk.download('punkt')
@@ -33,7 +34,14 @@ def hash_url(url):
     return hashlib.md5(url.encode()).hexdigest()
 
 
-def fetch_article_content(url):
+def parse_date(date_str):
+    try:
+        return parser.parse(date_str)
+    except:
+        return None
+
+
+def fetch_article_content(url, entry_published=None):
     logger.info(f"Fetching content from URL: {url}")
     try:
         article = Article(url)
@@ -43,9 +51,19 @@ def fetch_article_content(url):
         content = article.text
         title = article.title
 
-        # publish_date = article.publish_date.isoformat(
-        # ) if article.publish_date else datetime.now().isoformat()
-        publish_date = article.publish_date if article.publish_date else datetime.now()
+        # RSS 피드의 날짜를 우선적으로 사용
+        if entry_published:
+            publish_date = parse_date(entry_published)
+        else:
+            publish_date = None
+
+        # RSS 피드의 날짜가 없거나 파싱할 수 없는 경우, Article 객체의 발행일 사용
+        if not publish_date:
+            publish_date = article.publish_date
+
+        # 둘 다 실패할 경우 현재 시간 사용
+        if not publish_date:
+            publish_date = datetime.now()
 
         authors = ', '.join(article.authors)
 
@@ -54,7 +72,6 @@ def fetch_article_content(url):
         return {
             'content': content,
             'title': title,
-            # 'date': publish_date,
             'date': int(publish_date.timestamp()),  # Unix timestamp로 변환
             'authors': authors
         }
@@ -77,7 +94,9 @@ def process_feed(source, rss_url):
             logger.info(f"Article already exists: {url}")
             continue
 
-        article_data = fetch_article_content(url)
+        # RSS 피드의 발행일을 fetch_article_content 함수에 전달
+        entry_published = entry.get('published')
+        article_data = fetch_article_content(url, entry_published)
         if not article_data:
             logger.warning(
                 f"Skipping article due to content fetch failure: {url}")
