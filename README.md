@@ -11,7 +11,7 @@
 
 1. 이 저장소를 클론합니다:
 ```
-git clone https://github.com/yourusername/news-collector.git
+git clone https://github.com/lhg96/-AI-RSSCrawler.git
 cd news-collector
 ```
 
@@ -67,6 +67,14 @@ python createMD.py
 - 크롤링 시 해당 웹사이트의 이용 약관을 준수하세요.
 - 생성된 마크다운 파일은 정기적으로 백업하는 것이 좋습니다.
 
-
+### RSS 주소
+- Donga,https://rss.donga.com/total.xml
+- BBC News,http://feeds.bbci.co.uk/news/rss.xml
+- CNN,http://rss.cnn.com/rss/edition.rss
+- The New York Times,https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+- The Guardian,https://www.theguardian.com/international/rss
+- NPR News,https://feeds.npr.org/1001/rss.xml
+- Al Jazeera,https://www.aljazeera.com/xml/rss/all.xml
+- ABC News,https://abcnews.go.com/abcnews/topstories
 
 
