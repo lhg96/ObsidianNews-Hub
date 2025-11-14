@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Crawler 관리 시스템</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-rss"></i> RSS Crawler 간단 관리 시스템
+            </span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 상태 카드 -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-rss"></i> 등록된 피드</h5>
+                        <p class="card-text display-4">{{ feed_count }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-check-circle"></i> 상태</h5>
+                        <p class="card-text text-success">
+                            <i class="fas fa-check-circle"></i> 준비됨
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-server"></i> 시스템</h5>
+                        <p class="card-text text-info">
+                            <i class="fas fa-server"></i> 온라인
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 피드 관리 -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-plus"></i> 새 RSS 피드 추가</h5>
+            </div>
+            <div class="card-body">
+                <form onsubmit="addFeed(event)">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="feed-name" placeholder="피드 이름" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="url" class="form-control" id="feed-url" placeholder="RSS URL" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-plus"></i> 추가
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between">
+                <h5><i class="fas fa-list"></i> 등록된 피드 목록</h5>
+                <div>
+                    <button class="btn btn-sm btn-success me-2" id="crawl-btn" onclick="startCrawling()">
+                        <i class="fas fa-play"></i> 크롤링 시작
+                    </button>
+                    <button class="btn btn-sm btn-danger me-2" id="stop-btn" onclick="stopCrawling()" style="display: none;">
+                        <i class="fas fa-stop"></i> 중단
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadFeeds()">
+                        <i class="fas fa-refresh"></i> 새로고침
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- 크롤링 진행률 -->
+                <div id="crawl-progress" style="display: none;" class="mb-3">
+                    <h6><i class="fas fa-spinner fa-spin"></i> 크롤링 진행 중...</h6>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%" id="progress-bar">
+                            0/0
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="feeds-list">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">로딩 중...</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h6><i class="fas fa-terminal"></i> 시스템 로그</h6>
+                    <div id="log-container" style="height: 200px; overflow-y: auto; background: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; font-family: monospace; font-size: 0.9em; line-height: 1.4;">
+                        [시스템] 웹 인터페이스 준비 중...<br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 피드 목록 로드
+        function loadFeeds() {
+            addLog('피드 목록 로딩 중...');
+            
+            fetch('/api/feeds')
+                .then(response => response.json())
+                .then(data => {
+                    const feedsList = document.getElementById('feeds-list');
+                    if (data.feeds && data.feeds.length > 0) {
+                        feedsList.innerHTML = data.feeds.map((feed, index) => `
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                <div>
+                                    <strong><i class="fas fa-rss text-primary me-1"></i>${feed.name || 'Feed ' + (index + 1)}</strong><br>
+                                    <small class="text-muted">${feed.url}</small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteFeed(${index})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `).join('');
+                        addLog(`✅ 피드 ${data.feeds.length}개 로딩 완료`);
+                    } else {
+                        feedsList.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-rss fa-3x mb-2"></i><br>등록된 피드가 없습니다.</div>';
+                        addLog('⚠️ 등록된 피드가 없습니다');
+                    }
+                })
+                .catch(error => {
+                    console.error('피드 로드 오류:', error);
+                    addLog('❌ 피드 목록 로드 실패: ' + error.message);
+                });
+        }
+
+        // 피드 추가
+        function addFeed(event) {
+            event.preventDefault();
+            const name = document.getElementById('feed-name').value;
+            const url = document.getElementById('feed-url').value;
+
+            addLog(`피드 추가 중: ${name}`);
+
+            fetch('/api/feeds/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addLog(`✅ 피드 추가됨: ${name}`);
+                    document.getElementById('feed-name').value = '';
+                    document.getElementById('feed-url').value = '';
+                    loadFeeds();
+                    // 페이지 새로고침으로 카운트 업데이트
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    addLog(`❌ 피드 추가 실패: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                addLog(`❌ 오류: ${error.message}`);
+            });
+        }
+
+        // 피드 삭제
+        function deleteFeed(index) {
+            if (confirm('이 피드를 삭제하시겠습니까?')) {
+                addLog(`피드 삭제 중... (인덱스: ${index})`);
+                
+                fetch('/api/feeds/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addLog('✅ 피드 삭제됨');
+                        loadFeeds();
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        addLog(`❌ 삭제 실패: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    addLog(`❌ 삭제 오류: ${error.message}`);
+                });
+            }
+        }
+
+        // 크롤링 시작
+        function startCrawling() {
+            addLog('🚀 크롤링 시작 요청...');
+            
+            fetch('/api/crawl/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addLog(`✅ 크롤링 시작됨: ${data.message}`);
+                        updateCrawlingUI(true);
+                    } else {
+                        addLog(`❌ 크롤링 실패: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    addLog(`❌ 크롤링 오류: ${error.message}`);
+                });
+        }
+
+        // 크롤링 중단
+        function stopCrawling() {
+            if (confirm('크롤링을 중단하시겠습니까?')) {
+                addLog('⏹️ 크롤링 중단 요청...');
+                
+                fetch('/api/crawl/stop', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            addLog(`✅ 크롤링 중단 요청됨: ${data.message}`);
+                        } else {
+                            addLog(`❌ 중단 실패: ${data.error}`);
+                        }
+                    })
+                    .catch(error => {
+                        addLog(`❌ 중단 오류: ${error.message}`);
+                    });
+            }
+        }
+
+        // 크롤링 상태 확인
+        function checkCrawlStatus() {
+            fetch('/api/crawl/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.status) {
+                        const status = data.status;
+                        updateCrawlingUI(status.running);
+                        
+                        if (status.running && status.total > 0) {
+                            updateProgressBar(status.progress, status.total);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('크롤링 상태 확인 오류:', error);
+                });
+        }
+
+        // 크롤링 UI 업데이트
+        function updateCrawlingUI(isRunning) {
+            const crawlBtn = document.getElementById('crawl-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const progressDiv = document.getElementById('crawl-progress');
+            
+            if (isRunning) {
+                crawlBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+                progressDiv.style.display = 'block';
+            } else {
+                crawlBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'none';
+                progressDiv.style.display = 'none';
+            }
+        }
+
+        // 진행률 바 업데이트
+        function updateProgressBar(progress, total) {
+            const progressBar = document.getElementById('progress-bar');
+            const percentage = total > 0 ? (progress / total) * 100 : 0;
+            
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = `${progress}/${total}`;
+            progressBar.setAttribute('aria-valuenow', percentage);
+        }
+
+        // 크롤링 상태 모니터링 시작
+        function startCrawlStatusPolling() {
+            setInterval(checkCrawlStatus, 3000); // 3초마다 상태 확인
+        }
+
+        // 로그 추가 함수 (로컬)
+        function addLog(message) {
+            const logContainer = document.getElementById('log-container');
+            const timestamp = new Date().toLocaleTimeString();
+            logContainer.innerHTML += `[${timestamp}] ${message}<br>`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 서버에서 로그 가져오기
+        function loadLogs() {
+            fetch('/api/logs')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.logs) {
+                        const logContainer = document.getElementById('log-container');
+                        logContainer.innerHTML = data.logs.map(log => log + '<br>').join('');
+                        logContainer.scrollTop = logContainer.scrollHeight;
+                    }
+                })
+                .catch(error => {
+                    console.error('로그 로드 오류:', error);
+                });
+        }
+
+        // 주기적으로 로그 업데이트
+        function startLogPolling() {
+            setInterval(loadLogs, 2000); // 2초마다 로그 업데이트
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFeeds();
+            loadLogs(); // 초기 로그 로드
+            startLogPolling(); // 주기적 로그 업데이트 시작
+            startCrawlStatusPolling(); // 크롤링 상태 모니터링 시작
+            addLog('🌟 웹 인터페이스 초기화 완료');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# 프로덕션 환경 설정
+
+# 데이터베이스 설정
+database:
+  path: "./data/chroma_db"
+  collection_name: "news_articles"
+
+# 크롤러 설정
+crawler:
+  max_workers: 10
+  timeout: 45
+  retry_count: 5
+  delay_between_requests: 0.5
+  user_agent: "AI-RSSCrawler/1.0"
+
+# 마크다운 생성 설정
+markdown:
+  output_dir: "./output"
+  filename: "Today_News.md"
+  keywords_count: 8
+  content_preview_length: 500
+
+# 로깅 설정
+logging:
+  level: "WARNING"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/app.log"
+  max_bytes: 52428800  # 50MB
+  backup_count: 10
