@@ -1,6 +1,23 @@
+# 웹 크롤링 및 RSS 처리
 feedparser==6.0.10
 requests==2.31.0
 beautifulsoup4==4.12.2
-chromadb==0.4.15
 newspaper3k
 lxml[html_clean]
+
+# 벡터 데이터베이스
+chromadb==0.4.15
+
+# 데이터 처리 및 분석
+pandas>=1.5.0
+nltk>=3.8.0
+
+# 설정 관리
+pyyaml>=6.0
+
+# 유틸리티
+python-dateutil>=2.8.0
+tqdm>=4.64.0
+
+# 웹 기반 GUI
+flask>=3.1.0
