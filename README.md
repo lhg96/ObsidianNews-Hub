@@ -443,21 +443,6 @@ crawler_settings:
   max_articles: 20
 ```
 
-## 🤝 Contributing / 기여하기
-
-1. **Fork the repository / 저장소 포크**
-2. **Create feature branch / 기능 브랜치 생성** (`git checkout -b feature/AmazingFeature`)
-3. **Commit changes / 변경사항 커밋** (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-### 기여 가이드라인
-
-- 모든 새로운 기능에는 테스트 코드 포함
-- 코드 스타일은 Black과 PyLint 준수
-- 커밋 메시지는 [Conventional Commits](https://conventionalcommits.org/) 형식 사용
-- PR 전에 모든 테스트 통과 확인
-
 ## 📈 로드맵
 
 ### v2.0 계획 (향후 연구 및 협력 분야)
@@ -498,11 +483,6 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 - [ChromaDB](https://www.trychroma.com/) - 벡터 데이터베이스
 - [newspaper3k](https://newspaper.readthedocs.io/) - 뉴스 기사 추출
 
-## 📞 지원 및 연락처
-
-- 이슈 리포트: [GitHub Issues](https://github.com/lhg96/-AI-RSSCrawler/issues)
-- 기능 요청: [GitHub Discussions](https://github.com/lhg96/-AI-RSSCrawler/discussions)
-
 ---
 
 ## 📞 문의하기
@@ -512,8 +492,8 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 ### 👨‍💼 프로젝트 관리자 연락처
 
 **Email**: hyun.lim@okkorea.net  
-**Homepage**: https://www.okkorea.net
-**LinkedIn**: https://www.linkedin.com/in/aionlabs/
+**Homepage**: https://www.okkorea.net  
+**LinkedIn**: https://www.linkedin.com/in/aionlabs/  
 
 ### 🛠️ 전문 분야
 
